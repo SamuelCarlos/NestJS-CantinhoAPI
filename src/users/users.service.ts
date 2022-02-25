@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { generateToken, hashPassword } from 'src/utils';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -29,15 +29,33 @@ export class UsersService {
     return response.map((user) => new User(user));
   }
 
-  findOne(id: number): Promise<User> {
-    return this.prisma.user.findUnique({ where: { id } });
+  async findOne(id: number): Promise<User> {
+    const response = await this.prisma.user.findUnique({ where: { id } });
+
+    if (!response)
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+
+    return new User(response);
   }
 
-  update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
-    return this.prisma.user.update({ where: { id }, data: updateUserDto });
+  async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
+    const response = await this.prisma.user
+      .update({
+        where: { id },
+        data: updateUserDto,
+      })
+      .catch(() => {
+        throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+      });
+
+    return new User(response);
   }
 
-  remove(id: number) {
-    return this.prisma.user.delete({ where: { id } });
+  async remove(id: number) {
+    await this.prisma.user.delete({ where: { id } }).catch(() => {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    });
+
+    return 'User successfully deleted';
   }
 }
