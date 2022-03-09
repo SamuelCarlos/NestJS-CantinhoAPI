@@ -3,6 +3,7 @@ import { Expose } from 'class-transformer';
 
 export class User implements Prisma.UserUncheckedCreateInput {
   id?: number;
+  environmentId: number;
 
   @Expose()
   name?: string;
@@ -12,6 +13,7 @@ export class User implements Prisma.UserUncheckedCreateInput {
 
   password: string;
   token?: string;
+  isAdmin: boolean;
 
   @Expose()
   isVerified: boolean;

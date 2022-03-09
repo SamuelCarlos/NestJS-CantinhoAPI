@@ -10,14 +10,30 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id Int @default(autoincrement()) @id
-  phone String @unique
-  name String?
-  password String
-  token String?
-  isVerified Boolean @default(false)
+model Environment {
+  id        Int      @id @default(autoincrement())
+  name      String
+  logo      String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  deletedAt DateTime? 
+  User      User[]
+
+  @@map("environments")
+}
+
+model User {
+  id            Int         @id @default(autoincrement())
+  environmentId Int
+  phone         String      @unique
+  name          String?
+  password      String
+  token         String?
+  idAdmin       Boolean     @default(true)
+  isVerified    Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  deletedAt     DateTime?
+
+  environment   Environment @relation(fields: [environmentId], references: [id])
+  @@map("users")
 }
