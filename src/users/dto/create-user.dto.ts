@@ -2,7 +2,7 @@ import { IsPhoneNumber, IsString } from 'class-validator';
 import { User } from '../entities/user.entity';
 
 export class CreateUserDto extends User {
-  @IsPhoneNumber()
+  @IsPhoneNumber('BR')
   phone: string;
 
   @IsString()

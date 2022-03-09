@@ -1,4 +1,5 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { AwsService } from 'src/aws/aws.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { generateToken, hashPassword } from 'src/utils';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -7,18 +8,33 @@ import { User } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private aws: AwsService) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
-    const response = await this.prisma.user.create({
-      data: {
+    const SMS_TOKEN = generateToken();
+
+    const response = await this.prisma.user
+      .create({
+        data: {
+          phone: createUserDto.phone,
+          name: createUserDto.name,
+          password: await hashPassword(createUserDto.password),
+          token: SMS_TOKEN,
+          isVerified: false,
+        },
+      })
+      .catch((reason) => {
+        throw new HttpException(reason, HttpStatus.INTERNAL_SERVER_ERROR);
+      });
+
+    await this.aws
+      .sendSMS({
+        message: `CANTINHO - Seu codigo eh: ${SMS_TOKEN}`,
         phone: createUserDto.phone,
-        name: createUserDto.name,
-        password: await hashPassword(createUserDto.password),
-        token: generateToken(),
-        isVerified: false,
-      },
-    });
+      })
+      .catch((reason) => {
+        throw new HttpException(reason, HttpStatus.INTERNAL_SERVER_ERROR);
+      });
 
     return new User(response);
   }
