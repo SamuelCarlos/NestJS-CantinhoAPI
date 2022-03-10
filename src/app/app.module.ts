@@ -5,9 +5,15 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { AwsModule } from 'src/aws/aws.module';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
-  imports: [UsersModule, AwsModule, ConfigModule.forRoot({ isGlobal: true })],
+  imports: [
+    UsersModule,
+    AwsModule,
+    AuthModule,
+    ConfigModule.forRoot({ isGlobal: true }),
+  ],
   controllers: [AppController],
   providers: [AppService, PrismaService],
 })

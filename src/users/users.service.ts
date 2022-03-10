@@ -1,4 +1,9 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { AwsService } from 'src/aws/aws.service';
 import { EnvironmentsService } from 'src/environments/environments.service';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -19,10 +24,14 @@ export class UsersService {
   async createAdmin(createUserDto: CreateUserDto): Promise<User> {
     const SMS_TOKEN = generateToken();
 
-    const environment = await this.environments.create({
-      name: createUserDto.environmentName,
-      logo: createUserDto.environmentLogo || null,
-    });
+    const environment = await this.environments
+      .create({
+        name: createUserDto.environmentName,
+        logo: createUserDto.environmentLogo || null,
+      })
+      .catch((reason) => {
+        throw new HttpException(reason, HttpStatus.INTERNAL_SERVER_ERROR);
+      });
 
     const response = await this.prisma.user
       .create({
@@ -35,7 +44,8 @@ export class UsersService {
           environmentId: environment.id,
         },
       })
-      .catch((reason) => {
+      .catch(async (reason) => {
+        await this.environments.remove(environment.id);
         throw new HttpException(reason, HttpStatus.INTERNAL_SERVER_ERROR);
       });
 
@@ -59,6 +69,9 @@ export class UsersService {
       .catch((reason) => {
         throw new HttpException(reason, HttpStatus.INTERNAL_SERVER_ERROR);
       });
+
+    if (!environment)
+      throw new NotFoundException('Not found environment with this ID');
 
     const response = await this.prisma.user
       .create({
@@ -96,9 +109,10 @@ export class UsersService {
         throw new HttpException(reason, HttpStatus.INTERNAL_SERVER_ERROR);
       });
 
-    if (confirmSMSDto.token !== user.token) {
+    if (!user) throw new NotFoundException('No user found with this phone');
+
+    if (confirmSMSDto.token !== user.token)
       throw new HttpException('Incorrect token', HttpStatus.BAD_REQUEST);
-    }
 
     const updatedUser = await this.update(user.id, {
       isVerified: true,

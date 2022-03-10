@@ -1,4 +1,9 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateEnvironmentDto } from './dto/create-environment.dto';
 import { UpdateEnvironmentDto } from './dto/update-environment.dto';
@@ -40,6 +45,9 @@ export class EnvironmentsService {
       .catch((reason) => {
         throw new HttpException(reason, HttpStatus.INTERNAL_SERVER_ERROR);
       });
+
+    if (!response)
+      throw new NotFoundException('No environment found with this ID');
 
     return new Environment(response);
   }
