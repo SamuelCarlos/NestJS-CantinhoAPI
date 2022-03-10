@@ -16,24 +16,37 @@ model Environment {
   logo      String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  User      User[]
 
+  User     User[]
+  Category Category[]
   @@map("environments")
 }
 
 model User {
-  id            Int         @id @default(autoincrement())
+  id            Int       @id @default(autoincrement())
   environmentId Int
-  phone         String      @unique
+  phone         String    @unique
   name          String?
   password      String
   token         String?
-  idAdmin       Boolean     @default(true)
-  isVerified    Boolean     @default(false)
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  isAdmin       Boolean   @default(true)
+  isVerified    Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
   deletedAt     DateTime?
 
-  environment   Environment @relation(fields: [environmentId], references: [id])
+  environment Environment @relation(fields: [environmentId], references: [id])
   @@map("users")
+}
+
+model Category {
+  id            Int      @id @default(autoincrement())
+  environmentId Int
+  name          String
+  image         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  environment Environment @relation(fields: [environmentId], references: [id])
+  @@map("categories")
 }

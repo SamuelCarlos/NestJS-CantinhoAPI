@@ -1,5 +1,6 @@
 import { Prisma } from '@prisma/client';
 import { Expose } from 'class-transformer';
+import { Environment } from 'src/environments/entities/environment.entity';
 
 export class User implements Prisma.UserUncheckedCreateInput {
   id?: number;
@@ -13,6 +14,8 @@ export class User implements Prisma.UserUncheckedCreateInput {
 
   password: string;
   token?: string;
+
+  @Expose()
   isAdmin: boolean;
 
   @Expose()

@@ -131,7 +131,10 @@ export class UsersService {
   }
 
   async findOne(id: number): Promise<User> {
-    const response = await this.prisma.user.findUnique({ where: { id } });
+    const response = await this.prisma.user.findUnique({
+      where: { id },
+      include: { environment: true },
+    });
 
     if (!response)
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
